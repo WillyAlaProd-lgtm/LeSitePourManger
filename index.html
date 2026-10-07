@@ -172,7 +172,7 @@ ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 
   async function load(){
     const { data, error } = await sb.from("proposals").select("id,name,note,author,author_id,created_at,votes(voter_id,voter,value)").eq("day", DAY);
-    if (error) { showMsg("Impossible de charger les propositions. Vérifie la configuration Supabase."); return; }
+    if (error) { showMsg("Impossible de charger les propositions (" + (error.message || error.code || "erreur inconnue") + ")."); return; }
     showMsg("");
     proposals = data || [];
     render();

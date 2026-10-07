@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>On mange où ce midi ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  // ⬇️ Colle ici les deux valeurs de ton projet Supabase (Project Settings > API)
+  const SUPABASE_URL = "COLLE_ICI_TON_PROJECT_URL";
+  const SUPABASE_ANON_KEY = "COLLE_ICI_TA_CLE_ANON_PUBLIC";
+</script>
+<style>
+:root{
+  --bg:#EEF2EE; --surface:#FFFFFF; --ink:#18221E; --muted:#5C6B64; --line:#D5DDD8;
+  --accent:#1F6B4E; --accent-ink:#FFFFFF; --yes:#1F7A52; --yes-soft:#DDF0E5;
+  --no:#B93C2A; --no-soft:#F7E0DB; --lead:#E2AE33; --lead-soft:#FBF0D4;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#111815; --surface:#1A2420; --ink:#E7EEEA; --muted:#97A69F; --line:#2C3934;
+  --accent:#4FB98B; --accent-ink:#0D1411; --yes:#5CC796; --yes-soft:#1C3A2C;
+  --no:#EE7F6C; --no-soft:#41231E; --lead:#E9BC4F; --lead-soft:#3A3019; color-scheme:dark}}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:620px;margin:0 auto;display:grid;gap:28px}
+header{display:grid;gap:4px}
+.date{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,8vw,52px);line-height:1;margin:0;letter-spacing:-.02em;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.link{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;text-decoration:underline;padding:0}
+form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}
+form .row{display:flex;gap:10px;flex-wrap:wrap}
+label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.field{display:grid;gap:4px;flex:1 1 200px;min-width:0}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;width:100%}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.submit{align-self:end;font:600 15px var(--body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:9px;padding:11px 18px;cursor:pointer}
+.submit:disabled{opacity:.5;cursor:default}
+.msg{font-size:13px;color:var(--no);margin:0}
+.section-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0}
+.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:12px}
+.card.lead{border-color:var(--lead);box-shadow:0 0 0 1px var(--lead)}
+.top{display:flex;gap:12px;align-items:flex-start}
+.rank{font-family:var(--display);font-weight:800;font-size:22px;color:var(--muted);min-width:1.4em;font-variant-numeric:tabular-nums;line-height:1.2}
+.card.lead .rank{color:var(--lead)}
+.info{flex:1;min-width:0}
+.name{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.25;overflow-wrap:anywhere}
+.note{color:var(--muted);margin:2px 0 0;overflow-wrap:anywhere}
+.by{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-top:6px}
+.badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;background:var(--lead-soft);color:var(--ink);border-radius:99px;padding:2px 8px;white-space:nowrap}
+.del{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:13px;padding:4px;text-decoration:underline}
+.votes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vote{display:grid;gap:6px;align-content:start}
+.vbtn{font:600 15px var(--body);display:flex;justify-content:space-between;align-items:center;border-radius:10px;padding:9px 12px;cursor:pointer;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-variant-numeric:tabular-nums}
+.vbtn.yes.on{background:var(--yes-soft);border-color:var(--yes);color:var(--yes)}
+.vbtn.no.on{background:var(--no-soft);border-color:var(--no);color:var(--no)}
+.vbtn .n{font-size:18px}
+.faces{display:flex;flex-wrap:wrap;gap:3px;min-height:22px}
+.av{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:600;color:#fff;flex:none}
+.bar{height:6px;border-radius:99px;background:var(--no-soft);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--yes);transition:width .3s}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:28px 18px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:18px;margin-bottom:4px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="date" id="today"></div>
+    <h1>On mange où ce midi&nbsp;?</h1>
+    <p class="sub">Propose un endroit, vote pour celui des autres. Le plus de « oui » l'emporte.</p>
+  </header>
+
+  <div class="box" id="setup" hidden>
+    <strong>Site pas encore relié à Supabase</strong>
+    <span>Ouvre <code>index.html</code> et remplace <code>COLLE_ICI_TON_PROJECT_URL</code> et <code>COLLE_ICI_TA_CLE_ANON_PUBLIC</code> par les valeurs de ton projet Supabase.</span>
+  </div>
+
+  <form class="box" id="nameForm" hidden autocomplete="off">
+    <div class="field">
+      <label for="myName">Ton prénom</label>
+      <input id="myName" maxlength="30" placeholder="Camille" required>
+    </div>
+    <div class="row" style="justify-content:flex-end"><button class="submit" type="submit">C'est moi</button></div>
+  </form>
+
+  <div id="app" hidden style="display:grid;gap:28px">
+    <div class="who"><span id="meAv"></span><span>Tu votes en tant que <strong id="meName"></strong></span><button class="link" type="button" id="rename">changer</button></div>
+
+    <form id="form" autocomplete="off">
+      <div class="row">
+        <div class="field">
+          <label for="place">Où ?</label>
+          <input id="place" maxlength="80" placeholder="Le thaï de la rue Oberkampf" required>
+        </div>
+        <div class="field">
+          <label for="note">Précision (facultatif)</label>
+          <input id="note" maxlength="120" placeholder="Départ 12h15, à emporter…">
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <p class="msg" id="msg" hidden></p>
+        <button class="submit" id="submit" type="submit">Proposer</button>
+      </div>
+    </form>
+
+    <section style="display:grid;gap:14px">
+      <div class="section-h"><h2>Les propositions du jour</h2><span class="count" id="count"></span></div>
+      <ol id="list"></ol>
+      <div class="empty" id="empty"><strong>Rien de proposé pour l'instant</strong>Ajoute la première idée avec le formulaire au-dessus.</div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const now = new Date(), pad = n => String(n).padStart(2,"0");
+  const DAY = now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate());
+  $("today").textContent = now.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+  if (!window.supabase || SUPABASE_URL.startsWith("COLLE") || SUPABASE_ANON_KEY.startsWith("COLLE")) { $("setup").hidden = false; return; }
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Identité locale : un identifiant par navigateur + un prénom
+  const store = { get(k){ try{return localStorage.getItem(k);}catch(e){return null;} }, set(k,v){ try{localStorage.setItem(k,v);}catch(e){} } };
+  let myId = store.get("cemidi_id");
+  if (!myId) { myId = (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g,()=>(Math.random()*16|0).toString(16))); store.set("cemidi_id", myId); }
+  let myName = store.get("cemidi_name") || "";
+
+  let proposals = [];
+
+  function avatar(name){
+    const s=document.createElement("span"); s.className="av";
+    let h=0; for(const c of name||"?") h=(h*31+c.charCodeAt(0))>>>0;
+    s.style.background="hsl("+(h%360)+" 45% 42%)";
+    s.textContent=(name||"?").trim().slice(0,2).toUpperCase();
+    s.title=name||"";
+    return s;
+  }
+  function showMsg(t){ $("msg").textContent=t; $("msg").hidden=!t; }
+
+  function showApp(){
+    $("nameForm").hidden = true; $("app").hidden = false;
+    $("meName").textContent = myName; $("meAv").replaceChildren(avatar(myName));
+  }
+  if (myName) showApp(); else $("nameForm").hidden = false;
+
+  $("nameForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const n = $("myName").value.trim(); if(!n) return;
+    myName = n; store.set("cemidi_name", n); showApp();
+    // met à jour le prénom sur ses votes et propositions du jour
+    await sb.from("votes").update({voter:n}).eq("voter_id", myId);
+    await sb.from("proposals").update({author:n}).eq("author_id", myId).eq("day", DAY);
+    load();
+  });
+  $("rename").onclick = () => { $("myName").value = myName; $("app").hidden = true; $("nameForm").hidden = false; $("myName").focus(); };
+
+  async function load(){
+    const { data, error } = await sb.from("proposals").select("id,name,note,author,author_id,created_at,votes(voter_id,voter,value)").eq("day", DAY);
+    if (error) { showMsg("Impossible de charger les propositions. Vérifie la configuration Supabase."); return; }
+    showMsg("");
+    proposals = data || [];
+    render();
+  }
+
+  function render(){
+    const items = proposals.map(p => {
+      const yes = (p.votes||[]).filter(v=>v.value==="oui"), no = (p.votes||[]).filter(v=>v.value==="non");
+      const mine = (p.votes||[]).find(v=>v.voter_id===myId);
+      return {...p, yes, no, mine: mine ? mine.value : null};
+    }).sort((a,b)=>(b.yes.length-b.no.length)-(a.yes.length-a.no.length) || b.yes.length-a.yes.length || a.created_at.localeCompare(b.created_at));
+
+    $("empty").hidden = items.length>0;
+    $("count").textContent = items.length ? items.length+(items.length>1?" idées":" idée") : "";
+    $("list").replaceChildren(...items.map((p,i)=>card(p,i,items)));
+  }
+
+  function card(p,i,items){
+    const li=document.createElement("li");
+    const score=x=>x.yes.length-x.no.length;
+    const lead = i===0 && p.yes.length>0 && (items.length===1 || score(p)>score(items[1]));
+    li.className="card"+(lead?" lead":"");
+    const top=document.createElement("div"); top.className="top";
+    const rank=document.createElement("div"); rank.className="rank"; rank.textContent=i+1;
+    const info=document.createElement("div"); info.className="info";
+    const name=document.createElement("div"); name.className="name"; name.textContent=p.name; info.append(name);
+    if(p.note){ const n=document.createElement("p"); n.className="note"; n.textContent=p.note; info.append(n); }
+    const by=document.createElement("div"); by.className="by";
+    by.append(avatar(p.author), document.createTextNode("proposé par "+p.author+(p.author_id===myId?" (toi)":"")));
+    info.append(by); top.append(rank,info);
+    if(lead){ const b=document.createElement("span"); b.className="badge"; b.textContent="En tête"; top.append(b); }
+    if(p.author_id===myId){
+      const d=document.createElement("button"); d.className="del"; d.type="button"; d.textContent="Retirer";
+      d.onclick=async()=>{
+        if(!d.dataset.confirm){ d.dataset.confirm="1"; d.textContent="Confirmer ?"; setTimeout(()=>{d.dataset.confirm="";d.textContent="Retirer";},3000); return; }
+        d.disabled=true;
+        const {error}=await sb.from("proposals").delete().eq("id",p.id).eq("author_id",myId);
+        if(error){ d.disabled=false; showMsg("Impossible de retirer la proposition. Réessaie."); } else load();
+      };
+      top.append(d);
+    }
+    li.append(top);
+
+    const votes=document.createElement("div"); votes.className="votes";
+    for(const kind of ["oui","non"]){
+      const arr = kind==="oui"?p.yes:p.no;
+      const col=document.createElement("div"); col.className="vote";
+      const b=document.createElement("button"); b.type="button";
+      b.className="vbtn "+(kind==="oui"?"yes":"no")+(p.mine===kind?" on":"");
+      b.setAttribute("aria-pressed", p.mine===kind);
+      const l=document.createElement("span"); l.textContent=kind==="oui"?"Oui":"Non";
+      const n=document.createElement("span"); n.className="n"; n.textContent=arr.length;
+      b.append(l,n);
+      b.onclick=()=>vote(p.id,kind,p.mine);
+      const faces=document.createElement("div"); faces.className="faces";
+      arr.forEach(v=>faces.append(avatar(v.voter)));
+      col.append(b,faces); votes.append(col);
+    }
+    li.append(votes);
+    const total=p.yes.length+p.no.length;
+    if(total){ const bar=document.createElement("div"); bar.className="bar"; const s=document.createElement("span"); s.style.width=(100*p.yes.length/total)+"%"; bar.append(s); li.append(bar); }
+    return li;
+  }
+
+  async function vote(pid, kind, current){
+    // mise à jour immédiate à l'écran
+    const p = proposals.find(x=>x.id===pid); if(!p) return;
+    p.votes = (p.votes||[]).filter(v=>v.voter_id!==myId);
+    if(current!==kind) p.votes.push({voter_id:myId, voter:myName, value:kind});
+    render();
+    const req = current===kind
+      ? sb.from("votes").delete().eq("proposal_id",pid).eq("voter_id",myId)
+      : sb.from("votes").upsert({proposal_id:pid, voter_id:myId, voter:myName, value:kind}, {onConflict:"proposal_id,voter_id"});
+    const {error} = await req;
+    if(error){ showMsg("Ton vote n'a pas été enregistré. Réessaie."); load(); }
+  }
+
+  $("form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name=$("place").value.trim(), note=$("note").value.trim();
+    if(!name) return;
+    $("submit").disabled=true; showMsg("");
+    const {error} = await sb.from("proposals").insert({name, note: note||null, author: myName, author_id: myId, day: DAY});
+    $("submit").disabled=false;
+    if(error){ showMsg("La proposition n'a pas été envoyée. Réessaie."); return; }
+    $("place").value=""; $("note").value=""; load();
+  });
+
+  // Mise à jour en direct quand quelqu'un propose ou vote
+  let t=null; const soon=()=>{ clearTimeout(t); t=setTimeout(load,250); };
+  sb.channel("cemidi").on("postgres_changes",{event:"*",schema:"public",table:"proposals"},soon)
+    .on("postgres_changes",{event:"*",schema:"public",table:"votes"},soon).subscribe();
+  // filet de sécurité : rechargement toutes les 30 s
+  setInterval(load, 30000);
+  load();
+})();
+</script>
+</body>
+</html>
